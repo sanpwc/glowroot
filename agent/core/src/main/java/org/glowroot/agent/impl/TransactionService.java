@@ -54,7 +54,7 @@ public class TransactionService implements ConfigListener {
     private int maxServiceCallAggregates;
     private int maxProfileSamples;
 
-    private int samplingProbability;
+    private int samplingProbabilityInversed;
 
     // intentionally not volatile for small optimization
     private @MonotonicNonNull TransactionProcessor transactionProcessor;
@@ -92,7 +92,7 @@ public class TransactionService implements ConfigListener {
             ThreadContextThreadLocal.Holder threadContextHolder, int rootNestingGroupId,
             int rootSuppressionKeyId) {
 
-        if (samplingProbability != 0 && RANDOM.nextInt(samplingProbability) + 1 != 1)
+        if (samplingProbabilityInversed != 0 && RANDOM.nextInt(samplingProbabilityInversed) + 1 != 1)
             return null;
 
         // ensure visibility of recent configuration updates
@@ -131,7 +131,7 @@ public class TransactionService implements ConfigListener {
         maxTraceEntries = advancedConfig.maxTraceEntriesPerTransaction();
         maxProfileSamples = advancedConfig.maxProfileSamplesPerTransaction();
 
-        samplingProbability = configService.getTransactionConfig().samplingProbability();
+        samplingProbabilityInversed = configService.getTransactionConfig().samplingProbabilityInversed();
     }
 
     private class TransactionCompletionCallback implements CompletionCallback {

@@ -39,7 +39,7 @@ public abstract class TransactionConfig {
     }
 
     @Value.Default
-    public int samplingProbability() {
+    public int samplingProbabilityInversed() {
         return 1000;
     }
 
