@@ -31,7 +31,11 @@ import org.glowroot.agent.util.ThreadAllocatedBytes;
 import org.glowroot.common.config.AdvancedConfig;
 import org.glowroot.common.util.Clock;
 
+import java.util.Random;
+
 public class TransactionService implements ConfigListener {
+
+    private static final Random RANDOM = new Random(System.currentTimeMillis());
 
     private final TransactionRegistry transactionRegistry;
     private final ConfigService configService;
@@ -49,6 +53,8 @@ public class TransactionService implements ConfigListener {
     private int maxQueryAggregates;
     private int maxServiceCallAggregates;
     private int maxProfileSamples;
+
+    private int samplingProbability;
 
     // intentionally not volatile for small optimization
     private @MonotonicNonNull TransactionProcessor transactionProcessor;
@@ -85,6 +91,10 @@ public class TransactionService implements ConfigListener {
             MessageSupplier messageSupplier, TimerName timerName,
             ThreadContextThreadLocal.Holder threadContextHolder, int rootNestingGroupId,
             int rootSuppressionKeyId) {
+
+        if (samplingProbability != 0 && RANDOM.nextInt(samplingProbability) + 1 != 1)
+            return null;
+
         // ensure visibility of recent configuration updates
         configService.readMemoryBarrier();
         long startTick = ticker.read();
@@ -120,6 +130,8 @@ public class TransactionService implements ConfigListener {
         maxServiceCallAggregates = advancedConfig.maxServiceCallAggregates();
         maxTraceEntries = advancedConfig.maxTraceEntriesPerTransaction();
         maxProfileSamples = advancedConfig.maxProfileSamplesPerTransaction();
+
+        samplingProbability = configService.getTransactionConfig().samplingProbability();
     }
 
     private class TransactionCompletionCallback implements CompletionCallback {

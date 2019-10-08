@@ -102,7 +102,10 @@ class OptionalThreadContextImpl implements ThreadContextPlus {
             TraceEntry traceEntry = transactionService.startTransaction(transactionType,
                     transactionName, messageSupplier, timerName, threadContextHolder,
                     rootNestingGroupId, rootSuppressionKeyId);
-            threadContext = checkNotNull(threadContextHolder.get());
+
+            if (traceEntry != null)
+                threadContext = checkNotNull(threadContextHolder.get());
+
             return traceEntry;
         } else {
             return threadContext.startTransaction(transactionType, transactionName, messageSupplier,

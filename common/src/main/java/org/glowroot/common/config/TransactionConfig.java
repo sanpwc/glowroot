@@ -39,6 +39,11 @@ public abstract class TransactionConfig {
     }
 
     @Value.Default
+    public int samplingProbability() {
+        return 1000;
+    }
+
+    @Value.Default
     // do not use @JsonInclude NON_EMPTY
     // need to always write this value to config.json since default value is true
     public boolean captureThreadStats() {
